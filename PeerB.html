@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Peer B</title>
+	<script>
+		const remoteConnection = new RTCPeerConnection()
+		
+		remoteConnection.onicecandidate = e =>  {
+			console.log("NEW ice candidate! on localconnection reprinting SDP " )
+			console.log(JSON.stringify(remoteConnection.localDescription) )
+		}
+
+		remoteConnection.ondatachannel= e => {
+			const receiveChannel = e.channel;
+			receiveChannel.onmessage =e =>  console.log("messsage received: "  + e.data )
+			receiveChannel.onopen = e => console.log("opened!");
+			receiveChannel.onclose =e => console.log("closed!");
+			remoteConnection.channel = receiveChannel;
+		}
+	
+		async function setOffer(){
+			
+			
+			var offer = JSON.parse(document.getElementById("sdpOffer").value)
+			
+			console.log("OFFER: " + offer)
+
+			remoteConnection.setRemoteDescription(offer).then(a=>console.log("done"))
+
+			//create answer
+			await remoteConnection.createAnswer().then(a => remoteConnection.setLocalDescription(a)).then(a=> console.log(JSON.stringify(remoteConnection.localDescription)))
+		}
+	</script>
+  </head>
+  <body>
+  <textarea id="sdpOffer"></textarea>
+  <button onclick="setOffer()" text="SetOffer" />
+  </body>
+</html>
